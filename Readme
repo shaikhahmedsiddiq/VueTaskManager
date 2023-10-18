@@ -1,0 +1,196 @@
+<template>
+  <div id="app">
+    <div class="bordered-container">
+
+      <h1>TASK MANAGER</h1>
+
+      <div class="controls">
+        <div class="add-task">
+          <h2>Add Task</h2>
+          <input v-model="newTask" @keyup.enter="addTask" placeholder="Add a new task..." />
+          <button @click="addTask">Add</button>
+        </div>
+
+        <div class="filter-tasks">
+          <h2>Filter</h2>
+          <select v-model="filter">
+            <option value="all">All</option>
+            <option value="completed">Completed</option>
+            <option value="pending">Pending</option>
+          </select>
+        </div>
+      </div>
+
+      <transition-group name="fade" tag="ul">
+        <li v-for="(task, index) in filteredTasks" :key="index">
+          <div :class="{ completed: task.completed }">
+            <span v-if="task.completed">✓</span> {{ task.title }}
+            <button v-if="!task.completed" @click="toggleCompletion(task)">Mark as Completed</button>
+            <button @click="deleteTask(index)">Delete</button>
+          </div>
+        </li>
+      </transition-group>
+
+      <!-- Trash Bin -->
+      <div class="bin" :class="{ 'enlarged': deleting }">🗑️</div>
+
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  data() {
+    return {
+      newTask: '',
+      tasks: [],
+      filter: 'all',
+      deleting: false
+    };
+  },
+  computed: {
+    filteredTasks() {
+      if (this.filter === 'completed') {
+        return this.tasks.filter(t => t.completed);
+      } else if (this.filter === 'pending') {
+        return this.tasks.filter(t => !t.completed);
+      } else {
+        return this.tasks;
+      }
+    }
+  },
+  methods: {
+    addTask() {
+      if (this.newTask.trim() !== '') {
+        this.tasks.push({
+          title: this.newTask,
+          completed: false
+        });
+        this.newTask = '';
+      }
+    },
+    deleteTask(index) {
+      this.deleting = true;
+      setTimeout(() => {
+        this.tasks.splice(index, 1);
+        this.deleting = false;
+      }, 700);
+    },
+    toggleCompletion(task) {
+      task.completed = !task.completed;
+    }
+  }
+}
+</script>
+
+<style scoped>
+#app {
+  font-family: 'Avenir', Helvetica, Arial, sans-serif;
+  text-align: center;
+  margin: 0; 
+  height: 100vh; 
+  display: flex; 
+  justify-content: center; 
+  align-items: center; 
+}
+
+.bordered-container {
+  width: 800px; 
+  height: calc(100vh - 100px);
+  padding: 20px;
+  border: 2px solid #35495E;
+  border-radius: 10px;
+  position: relative;
+  overflow-y: auto;
+}
+
+
+h1, h2 {
+  color: #35495E;
+}
+
+input[type="text"], select {
+  padding: 5px 10px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  margin-right: 10px;
+}
+
+button {
+  padding: 5px 15px;
+  border: none;
+  background-color: #35495E;
+  color: white;
+  cursor: pointer;
+  border-radius: 3px;
+  margin-left: 10px;
+}
+
+button:hover {
+  background-color: #2c3e50;
+}
+
+li {
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.completed {
+  color: green;
+}
+
+@keyframes bounceAndThrow {
+  30% {
+    transform: translateY(calc(100vh - 100% - 150px));
+    opacity: 0.7;
+  }
+  60% {
+    transform: translateY(calc(100vh - 100% - 130px));
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(calc(100vh - 100%)) translateX(-100%);
+    opacity: 0;
+  }
+}
+
+.fade-leave-active {
+  position: absolute;
+  width: 100%;
+  animation: bounceAndThrow 0.7s forwards;
+}
+
+/* Bin Styling */
+.bin {
+  position: absolute; 
+  bottom: 20px;
+  left: 20px;
+  font-size: 2em;
+}
+
+.bin.enlarged {
+  transform: scale(1.5);
+  transition: transform 0.3s;
+}
+
+
+.controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.add-task, .filter-tasks {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+</style>
+
+
